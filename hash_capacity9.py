@@ -6,6 +6,7 @@
 
 import csv
 import time
+import tracemalloc
 
 class HashTable:
     def __init__(self):
@@ -14,25 +15,48 @@ class HashTable:
         self.size = 0
 
         # Statistics Variables
-        self.memory_use = 0
+        
         self.collisions = 0
 
+        self.memory_start = 0
+        self.memory_counter = 0     # Manual +1 counter for memory
+
     def __str__(self):
+        current, peak = self.get_memory_usage()
+
         result = "Hash Table Results \n"
+        result += f"Buckets: {self.buckets} \n"
+        result += f"Total entries: {self.size} \n"
+        result += f"Collisions: {self.collisions} \n"
+        
+        
+        result += f"Current Memory : {current / 1024:.2f} KB \n"
+        result += f"Peak Memory: {peak / 1024:.2f} KB \n"
+        result += f"Memory Counter (estimated): {self.memory_counter}"
 
-        # for index, entry in self.data.items():
-        #     current = entry
 
-        #     while current:
-        #         result += f'{index}: {current.key} : {current.value}\n'
-        #         current = current.next
+        # Add Each Bucket to the CSV
+        # Index goes from 0-Buckets, and fills in whether something exists there or not.
 
-        result += f'Maximum Buckets: {self.buckets}'
-        result += f'Amount of buckets filled: {self.unused_buckets()}'
+        for index in range(self.buckets):
+            result += f"Bucket {index}: \n"
 
+            if index not in self.data:
+                result += "\t Empty"
+                continue
+
+            current = self.data[index]
+
+            while current:
+                result += f"\t [{current.key}: {current.value}]"
+                current = current.next
+
+                if current:
+                    result += " -> \n"
+
+            result += "\n"
 
         return result
-
 
     def hash(self, key):
         hash_value = 0
@@ -48,6 +72,7 @@ class HashTable:
             self.data[hashed_key] = Node(key, value)
             self.size += 1
             return
+        
         else:
         # Case 2: Collision!
             current = self.data[hashed_key]
@@ -57,31 +82,31 @@ class HashTable:
                     current.value = value
                     return
                 current = current.next
-                self.collisions += 1        # +1 Collision
-                self.memory_use += 1      # +1 memory each time it goes to next node over
+                self.memory_counter += 1
+                self.collisions += 1        # +1 Collision each time it goes to next node over
 
             new_node = Node(key, value)
             new_node.next = self.data[hashed_key]
             self.data[hashed_key] = new_node
             self.size += 1                              # Increase size
-            self.memory_use += 1                        # Append is O(1)
+            self.memory_counter += 1                        # Append is O(1)
 
     def search(self, key):
         hashed_key = self.hash(key)
-        current = self.data[hashed_key]
+        current = self.data.get(hashed_key)
 
         while current:
             if current.key == key:
                 return current.value
             current = current.next
-            self.memory_use += 1 # Searching is O(1), do so each loop
+            self.memory_counter += 1 # Searching is O(1), do so each loop
 
         # If nothing was found, key does not exist!
         return None
 
     def delete(self, key):
         hashed_key = self.hash(key)
-        current = self.data[hashed_key]
+        current = self.data.get(hashed_key)
         previous = None
 
         # Find node to delete
@@ -91,6 +116,7 @@ class HashTable:
                     previous.next = current.next
                 else:
                     self.data[hashed_key] = current.next
+                    self.size -= 1          # Node removed.
                 return True
 
             previous = current
@@ -101,16 +127,28 @@ class HashTable:
 
     # Calculates how many buckets were used; if all buckets are filled, the expected value is 0.
     def unusued_buckets(self):
-        count = 0
-
-        for bucket in self.data.values():
-            if bucket is None:
-                count += 1
-
-        return count
+        return self.buckets - len(self.data)
 
     def waste_percentage(self):
-        return (self.unused_buckets() / self.capacity) * 100
+        return (self.unused_buckets() / self.buckets) * 100
+
+    def start_trace(self):
+        if not tracemalloc.is_tracing():
+            tracemalloc.start()
+
+        self.memory_start = tracemalloc.get_traced_memory()[0]
+
+        tracemalloc.reset_peak()
+
+    def get_memory_usage(self):
+        if not tracemalloc.is_tracing():
+            return 0, 0
+
+        current, peak = tracemalloc.get_traced_memory()
+        current = max(0, current - self.memory_start)
+        peak = max(0, peak - self.memory_start)
+
+        return current, peak
 
 class Node:
     def __init__(self, key, value):
@@ -121,6 +159,8 @@ class Node:
 def main():
     hash_table = HashTable()
 
+    hash_table.start_trace()        # Start mem counter
+
     # Get table values
     print('Starting hash population now...')
     start_time = time.perf_counter()        # Record time start
@@ -128,13 +168,12 @@ def main():
         reader = csv.DictReader(file)
         for row in reader:
             hash_table.append(row['movie_title'], row['quote'])
-            hash_table.size += 1
         
     end_time = time.perf_counter()
     duration = end_time - start_time
     print(f'Took {duration:.6f} seconds to complete')
 
-    write_to_csv(hash_table.data)
+    write_to_csv(hash_table)
     # print(hash_table)
 
 # Write Hash Table Values to a CSV to check if my output is valid
@@ -143,10 +182,7 @@ def main():
 def write_to_csv(data):
     file = 'OUTPUT_DATA.csv'
     with open(file, "w", newline="", encoding="utf-8") as f:
-        writer = csv.writer(f)
-        writer.writerow(["Key", "Value"] )   # First Row
-        for key, value in data.items():
-            writer.writerow([key, value])
+        f.write(str(data))
 
 if __name__ == "__main__":
     main()
