@@ -9,7 +9,7 @@ import time
 
 class HashTable:
     def __init__(self):
-        self.buckets = 10
+        self.buckets = 15000
         self.data = {}
         self.size = 0
 
@@ -98,6 +98,7 @@ class Node:
 
 def main():
     hash_table = HashTable()
+    row_number = 0
 
     # Get table values
     print('Starting hash population now...')
@@ -108,7 +109,8 @@ def main():
         reader = csv.DictReader(file)
 
         for movie in reader:
-            _key = f"{movie['quote']}_{movie['release_date']}" 
+            row_number += 1
+            _key = f"{movie['quote']}_{row_number}" 
 
             hash_table.append(_key, movie)
         
