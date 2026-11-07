@@ -23,29 +23,6 @@ class HashTable:
         result += f"Total entries: {self.size} \n"
         result += f"Collisions: {self.collisions} \n"
 
-
-
-        # Add Each Bucket to the CSV
-        # Index goes from 0-Buckets, and fills in whether something exists there or not.
-
-        for index in range(self.buckets):
-            result += f"Bucket {index}: \n"
-
-            if index not in self.data:
-                result += "\t Empty \n"
-                continue
-
-            current = self.data[index]
-
-            while current:
-                result += f"\t [{current.key}: {current.value}]"
-                current = current.next
-
-                if current:
-                    result += " -> \n"
-
-            result += "\n"
-
         return result
 
     def hash(self, key):
@@ -133,11 +110,11 @@ def main():
 
         for movie in reader:
             row_number += 1
-            _title = movie['movie_title']
+            _title = movie['quote']
 
             # Check for duplicate
             if _title in titles:
-                _title = f"{movie['movie_title']}_{row_number}"
+                _title = f"{movie['quote']}_{row_number}"
                 modified_titles += 1
             
             titles.add(_title)
@@ -145,21 +122,12 @@ def main():
             hash_table.append(_title, movie)
         
     end_time = time.perf_counter()
-    print(f"Adjusted the values of {modified_titles} titles.")
 
     duration = end_time - start_time
 
     print(f'Took {duration:.6f} seconds to complete')
 
-    write_to_csv(hash_table)
-
     print(hash_table)
-
-# Write Hash Table Values to a CSV to check if my output is valid
-def write_to_csv(data):
-    file = 'OUTPUT_DATA_LinkedList.csv'
-    with open(file, "w", newline="", encoding="utf-8") as f:
-        f.write(str(data))
 
 if __name__ == "__main__":
     main()

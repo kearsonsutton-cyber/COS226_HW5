@@ -135,11 +135,11 @@ def main():
 
         for movie in reader:
             row_number += 1
-            _title = movie['movie_title']
+            _title = movie['quote']
 
             # Check for duplicate
             if _title in titles:
-                _title = f"{movie['movie_title']}_{row_number}"     # Modify movie_title accordingly. The actual movie itself goes in unchanged, though!
+                _title = f"{movie['quote']}_{row_number}"     # Modify movie_title accordingly. The actual movie itself goes in unchanged, though!
                 # modified_titles += 1
             
             titles.add(_title)
@@ -152,17 +152,7 @@ def main():
     duration = end_time - start_time
     print(f'Took {duration:.6f} seconds to complete')
 
-    write_to_csv(hash_table)
-
     print(hash_table)
-
-
-
-# Write Hash Table Values to a CSV to check if my output is valid
-def write_to_csv(data):
-    file = 'OUTPUT_DATA_LinearProbe.csv'
-    with open(file, "w", newline="", encoding="utf-8") as f:
-        f.write(str(data))
 
 if __name__ == "__main__":
     main()
