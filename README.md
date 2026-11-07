@@ -106,9 +106,27 @@ I accidentally deleted the README after I editing this section, so I am going to
 
 And I was correct! So I was hoping to see if I could get collisions to 0 with 15000 buckets.
 
-    Buckets: 15000 
+    Buckets: 15000
     Total entries: 15000 
     Collisions: 12285 
     Time elapsed: 0.077023 seconds
 
-I expected to get diminishing returns when doing a massive bucket size for the linked list hash table, but was surprised by how fast it was. 0.077 seconds is crazy! However, it had 12285 collisions. It is unclear to me why, still.
+I expected to get diminishing returns when doing a massive bucket size for the linked list hash table, but was surprised by how fast it was. 0.077 seconds is crazy! However, it had 12285 collisions. It is unclear to me why, still. Around 2,000 buckets, the collisions stop going down for every bucket added. By 3,000 buckets the collisions are 12,372, and approach 12285 very very gradually. I found that to be interesting, and so I wanted to push it just a bit further before completing this project.
+
+I set my buckets to 60,000 and found that it started to take a longer amount of time to do:
+    Buckets: 60000 
+    Total entries: 15000 
+    Collisions: 12285 
+    Time elapsed: 0.097537 seconds
+Clearly, there are diminishing returns for a linked list. Let's just see what happens for the Linear Probe, if it gets faster at 60,000 buckets...
+
+
+Took 0.221572 seconds to complete
+    Buckets: 60000 
+    Unused buckets: 45000
+    Total entries: 15000 
+    Total Collisions: 74010 
+    Time elapsed: 0.221572 seconds
+I think it can get to a point where it's too big indeed; total collisions do not decrease by as much as when I had set it from 20011 to 35753. 
+
+Clearly, there is a worst and best case for each of these algorithms. I believe that the hash table could be better utilized if it was a linked list that hashed the genre value of the movies, as that'd make it easier to find related movies to what I might want to watch next. But, this is a theoretical program.

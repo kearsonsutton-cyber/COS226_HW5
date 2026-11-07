@@ -9,7 +9,7 @@ import time
 
 class HashTable:
     def __init__(self):
-        self.buckets = 35753            # 15,000 entries
+        self.buckets = 60000            # 15,000 entries
         self.data = {}
         self.size = 0                   # Unfilled
 
