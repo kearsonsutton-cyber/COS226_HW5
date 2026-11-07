@@ -121,9 +121,7 @@ class Node:
 
 def main():
     hash_table = HashTable()
-    titles = set()      # Keep track of duplicate titles
-    #modified_titles = 0  # Keep track of titles that got adjusted
-    row_number = 0      # Keep track of row to ensure that every title can be unique
+    keys = set()      # Keep track of duplicate titles
 
     # Get table values
     print('Starting hash population now...')
@@ -134,19 +132,10 @@ def main():
         reader = csv.DictReader(file)
 
         for movie in reader:
-            row_number += 1
-            _title = movie['quote']
+            _key = f"{movie['quote']}_{movie['release_date']}"
+            keys.add(_key)
 
-            # Check for duplicate
-            if _title in titles:
-                _title = f"{movie['quote']}_{row_number}"     # Modify movie_title accordingly. The actual movie itself goes in unchanged, though!
-                # modified_titles += 1
-            
-            titles.add(_title)
-
-            hash_table.append(_title, movie)                    # Putting in the movie object w/o changing ['movie_title'] directly
-    
-    #  print(f"Adjusted the values of {modified_titles} titles.")       Output: 3691!
+            hash_table.append(_key, movie)                    # Putting in the movie object w/o changing ['movie_title'] directly
         
     end_time = time.perf_counter()          # End time
     duration = end_time - start_time

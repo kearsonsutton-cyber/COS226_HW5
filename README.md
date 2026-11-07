@@ -62,3 +62,19 @@ The only thing I changed here was removing a print statement, and yet the algori
 
 I will next adapt my hash function so that the handling of repeat values isn't done inside of main. I doubt it will fix anything yet, but I want to implement more hashing logic to see if that slows things down...
 
+**Attempt 8: Movie Quote + Release Date**
+I have decided to see what happened if I changed the linked and linear probe tables to have their keys be a quote + release date, to see if the time changed that much and if collisions went up or down. I was hoping that more unique datum would have reduced collisions...
+
+Linked List Results
+    Buckets: 10 
+    Total entries: 15000 
+    Collisions: 14990 
+    Time elapsed: 0.372346 seconds
+Linear Probe
+    Buckets: 15000 
+    Unused buckets: 0
+    Total entries: 15000 
+    Total Collisions: 92797618 
+    Time elapsed: 12.450382 seconds
+
+So I got some time back by 

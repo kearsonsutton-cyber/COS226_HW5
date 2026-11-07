@@ -26,6 +26,8 @@ class HashTable:
         return result
 
     def hash(self, key):
+        
+
         hash_value = 0
         for char in key:
             hash_value += ord(char)     # Add ASCII values
@@ -96,9 +98,6 @@ class Node:
 
 def main():
     hash_table = HashTable()
-    titles = set()      # Keep track of duplicate titles
-    modified_titles = 0  # Keep track of titles that got adjusted
-    row_number = 0      # Keep track of row to ensure that every title can be unique
 
     # Get table values
     print('Starting hash population now...')
@@ -109,17 +108,9 @@ def main():
         reader = csv.DictReader(file)
 
         for movie in reader:
-            row_number += 1
-            _title = movie['quote']
+            _key = f"{movie['quote']}_{movie['release_date']}" 
 
-            # Check for duplicate
-            if _title in titles:
-                _title = f"{movie['quote']}_{row_number}"
-                modified_titles += 1
-            
-            titles.add(_title)
-
-            hash_table.append(_title, movie)
+            hash_table.append(_key, movie)
         
     end_time = time.perf_counter()
 
