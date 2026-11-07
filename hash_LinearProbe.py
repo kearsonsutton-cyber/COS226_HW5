@@ -22,18 +22,9 @@ class HashTable:
     def __str__(self):
         result = "Hash Table Results \n"
         result += f"Buckets: {self.buckets} \n"
+        result += f"Unused buckets: {self.buckets - self.size}\n"
         result += f"Total entries: {self.size} \n"
         result += f"Total Collisions: {self.collisions} \n"
-
-        # IMPORTANTLY, doesnt look at empty buckets, only the buckets that are filled.
-        for index, current in self.data.items():
-            result += f"Bucket {index}: \n"
-
-            if current is self.DELETED:
-                result += "\t Deleted \n"
-
-            else:
-                result += f"\t {current.value} \n"
 
         return result
 
@@ -130,6 +121,9 @@ class Node:
 
 def main():
     hash_table = HashTable()
+    titles = set()      # Keep track of duplicate titles
+    modified_titles = 0  # Keep track of titles that got adjusted
+    row_number = 0      # Keep track of row to ensure that every title can be unique
 
     # Get table values
     print('Starting hash population now...')
@@ -138,15 +132,28 @@ def main():
 
     with open('MOCK_DATA.csv', mode='r', encoding='utf-8') as file:
         reader = csv.DictReader(file)
+
         for movie in reader:
-            hash_table.append(movie['movie_title'], movie)
+            row_number += 1
+            _title = movie['movie_title']
+
+            # Check for duplicate
+            if _title in titles:
+                _title = f"{movie['movie_title']}_{row_number}"
+                modified_titles += 1
+            
+            titles.add(_title)
+
+            hash_table.append(_title, movie)
+    
+    print(f"Adjusted the values of {modified_titles} titles.")
         
     end_time = time.perf_counter()          # End time
     duration = end_time - start_time
     print(f'Took {duration:.6f} seconds to complete')
 
     write_to_csv(hash_table)
-    # print(hash_table)
+    print(hash_table)
 
 
 

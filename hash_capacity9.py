@@ -2,7 +2,7 @@
 # COS226
 # HW6: Hash Function
 #
-# The following hash table is made by putting values into bins between 0-9. This is, understandably, a very bad way to set up a hash table.
+# The following hash table is made by putting values into bins between 0-9. This is, understandably, a very bad way to set up a hash table. However, it's also pretty fast!
 
 import csv
 import time
@@ -17,17 +17,12 @@ class HashTable:
         self.collisions = 0
 
     def __str__(self):
-        current, peak = self.get_memory_usage()
 
         result = "Hash Table Results \n"
         result += f"Buckets: {self.buckets} \n"
         result += f"Total entries: {self.size} \n"
         result += f"Collisions: {self.collisions} \n"
-        
-        
-        result += f"Current Memory : {current / 1024:.2f} KB \n"
-        result += f"Peak Memory: {peak / 1024:.2f} KB \n"
-        result += f"Memory Counter (estimated): {self.memory_counter}"
+
 
 
         # Add Each Bucket to the CSV
@@ -61,64 +56,60 @@ class HashTable:
 
     def append(self, key, value):
         hashed_key = self.hash(key)
+        new_node = Node(key, value)
 
         # Scenario A: Bucket empty, create first node
         if hashed_key not in self.data:
-            self.data[hashed_key] = Node(key, value)
+            self.data[hashed_key] = new_node
             self.size += 1
             return
         
         else:
-        # Case 2: Collision!
             current = self.data[hashed_key]
             while current:
                 # If the key exists, update value
                 if current.key == key:
                     current.value = value
                     return
-                current = current.next
-                self.memory_counter += 1
-                self.collisions += 1        # +1 Collision each time it goes to next node over
 
-            new_node = Node(key, value)
+                current = current.next
+
             new_node.next = self.data[hashed_key]
             self.data[hashed_key] = new_node
+
             self.size += 1                              # Increase size
-            self.memory_counter += 1                        # Append is O(1)
+            self.collisions += 1        # +1 Collision each time it goes to next node over
 
-    def search(self, key):
-        hashed_key = self.hash(key)
-        current = self.data.get(hashed_key)
-
-        while current:
-            if current.key == key:
-                return current.value
-            current = current.next
-            self.memory_counter += 1 # Searching is O(1), do so each loop
-
-        # If nothing was found, key does not exist!
-        return None
 
     def delete(self, key):
         hashed_key = self.hash(key)
+
+        if hashed_key not in self.data:
+            return False            # No need to go through this if it doesnt exist.
+
         current = self.data.get(hashed_key)
         previous = None
 
         # Find node to delete
         while current:
             if current.key == key:
-                if previous:
-                    previous.next = current.next
+                if previous is None:    # At the head of the bucket
+                    if current.next:
+                        self.data[hashed_key] = current.next    # Make next value replace current
+                    else:
+                        del self.data[hashed_key]
                 else:
-                    self.data[hashed_key] = current.next
-                    self.size -= 1          # Node removed.
+                    # Delete middle/tail
+                    previous.next = current.next
+
+                self.size -= 1
                 return True
 
             previous = current
-            current = current.next  # Current is set for next node in list
+            current = current.next
 
-        # Key went unfound:
         return False
+
     
 class Node:
     def __init__(self, key, value):
@@ -128,6 +119,9 @@ class Node:
 
 def main():
     hash_table = HashTable()
+    titles = set()      # Keep track of duplicate titles
+    modified_titles = 0  # Keep track of titles that got adjusted
+    row_number = 0      # Keep track of row to ensure that every title can be unique
 
     # Get table values
     print('Starting hash population now...')
@@ -138,7 +132,19 @@ def main():
         reader = csv.DictReader(file)
 
         for movie in reader:
-            hash_table.append(movie['movie_title'], movie)
+            row_number += 1
+            _title = movie['movie_title']
+
+            # Check for duplicate
+            if _title in titles:
+                _title = f"{movie['movie_title']}_{row_number}"
+                modified_titles += 1
+            
+            titles.add(_title)
+
+            hash_table.append(_title, movie)
+    
+    print(f"Adjusted the values of {modified_titles} titles.")
         
     end_time = time.perf_counter()
 

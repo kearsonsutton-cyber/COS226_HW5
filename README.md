@@ -1,5 +1,9 @@
 Attempt 1: Movie Title as Key w/ Linked List
-The hash function for this attempt was a basic character counter. The hash() method added up the Unicode values for each character in the string. 
+    Buckets: 10 
+    Total entries: 11309 
+    Collisions: 11299 
+    Time elapsed: 0.298913 seconds
+The hash function for this attempt was a basic character counter. The hash() method added up the Unicode values for each character in the string. This one was exceptionally quick, though I imagine that searching through each bucket will take quite some time. 
 
 
 Attempt 2: Movie Title as Key w/ Linear Probing
@@ -15,5 +19,7 @@ After this, I decided to go for something more unique: quotes. This took 4 secon
     Buckets: 15000 
     Total entries: 14891 
     Total Collisions: 91702029 
-    Time elapsed: 12.32598
-Weird. 
+    Time elapsed: 12.32598 seconds
+Weird. I am realizing now that the issue is a lack of uniqueness in keys... I will have to fix this!!
+
+Attempt 3: Good Hash Function, Movie Title w/ Linked List
