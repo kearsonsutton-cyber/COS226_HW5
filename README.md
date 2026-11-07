@@ -77,4 +77,20 @@ Linear Probe
     Total Collisions: 92797618 
     Time elapsed: 12.450382 seconds
 
-So I got some time back by 
+So I am still losing time. I will next attempt a new hashing method I found online called "double hashing", where the step size is decided by a secondary hash function. I figured it wouldn't hurt to try, and believe that anything is better than going +1, +1, +1 over all 15,000 entries. But maybe the computational load of figuring out a new hash key will be slow.
+
+**Attempt 9: Movie Quote w/ Double Hashing Collision Resolution**
+    Buckets: 20011 
+    Unused buckets: 5011
+    Total entries: 15000 
+    Total Collisions: 90423 
+    Time elapsed: 0.235455 seconds
+Double hashing significantly sped my linear probe up by 12 seconds. I am astonished! The number of total collisions shot down too, to the point that it is currently faster than my chaining method! I will now try to optimize the Linked List a bit more, but first, I will just make sure that the reason this worked so well isn't because I increased the number of buckets. Maxed buckets was capped at 15101 for this:
+    Buckets: 15101
+    Time elapsed: 0.337715
+    Total Collisions: 160795
+A lot more collisions! I blame the significantly smaller table size, for sure. Let's see if making the buckets too big is a possibility?
+    Buckets: 35753
+    Time elapsed: 0.201462 seconds
+    Total Collisions: 75906
+Cool! Larger tables mean a faster algorithm, then; the ideal is to have more than necessary! I am going to apply this to the Linked List method next. 
