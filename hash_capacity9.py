@@ -6,7 +6,6 @@
 
 import csv
 import time
-import tracemalloc
 
 class HashTable:
     def __init__(self):
@@ -15,11 +14,7 @@ class HashTable:
         self.size = 0
 
         # Statistics Variables
-        
         self.collisions = 0
-
-        self.memory_start = 0
-        self.memory_counter = 0     # Manual +1 counter for memory
 
     def __str__(self):
         current, peak = self.get_memory_usage()
@@ -42,7 +37,7 @@ class HashTable:
             result += f"Bucket {index}: \n"
 
             if index not in self.data:
-                result += "\t Empty"
+                result += "\t Empty \n"
                 continue
 
             current = self.data[index]
@@ -124,32 +119,7 @@ class HashTable:
 
         # Key went unfound:
         return False
-
-    # Calculates how many buckets were used; if all buckets are filled, the expected value is 0.
-    def unusued_buckets(self):
-        return self.buckets - len(self.data)
-
-    def waste_percentage(self):
-        return (self.unused_buckets() / self.buckets) * 100
-
-    def start_trace(self):
-        if not tracemalloc.is_tracing():
-            tracemalloc.start()
-
-        self.memory_start = tracemalloc.get_traced_memory()[0]
-
-        tracemalloc.reset_peak()
-
-    def get_memory_usage(self):
-        if not tracemalloc.is_tracing():
-            return 0, 0
-
-        current, peak = tracemalloc.get_traced_memory()
-        current = max(0, current - self.memory_start)
-        peak = max(0, peak - self.memory_start)
-
-        return current, peak
-
+    
 class Node:
     def __init__(self, key, value):
         self.key = key
@@ -159,22 +129,24 @@ class Node:
 def main():
     hash_table = HashTable()
 
-    hash_table.start_trace()        # Start mem counter
-
     # Get table values
     print('Starting hash population now...')
+
     start_time = time.perf_counter()        # Record time start
+
     with open('MOCK_DATA.csv', mode='r', encoding='utf-8') as file:
         reader = csv.DictReader(file)
-        for row in reader:
-            hash_table.append(row['movie_title'], row['quote'])
+
+        for movie in reader:
+            hash_table.append(movie['movie_title'], movie)
         
     end_time = time.perf_counter()
+
     duration = end_time - start_time
+
     print(f'Took {duration:.6f} seconds to complete')
 
     write_to_csv(hash_table)
-    # print(hash_table)
 
 # Write Hash Table Values to a CSV to check if my output is valid
 # Result should be:

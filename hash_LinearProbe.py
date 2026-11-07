@@ -9,136 +9,146 @@ import time
 
 class HashTable:
     def __init__(self):
-        self.buckets = 10
+        self.buckets = 15000            # 15,000 entries
         self.data = {}
-        self.size = 0
+        self.size = 0                   # Unfilled
 
         # Statistics Variables
-        self.memory_use = 0s
         self.collisions = 0
+
+        # Linear Probing
+        self.DELETED = object()        # Google said this was a good way of doing this.
 
     def __str__(self):
         result = "Hash Table Results \n"
         result += f"Buckets: {self.buckets} \n"
         result += f"Total entries: {self.size} \n"
-        result += f"Collisions: {self.collisions} \n"
-        result += f"Memory Usage: {self.memory_use} \n"
+        result += f"Total Collisions: {self.collisions} \n"
 
-
-        # Add Each Bucket to the CSV
-        # Index goes from 0-Buckets, and fills in whether something exists there or not.
-
-        for index in range(self.buckets):
+        # IMPORTANTLY, doesnt look at empty buckets, only the buckets that are filled.
+        for index, current in self.data.items():
             result += f"Bucket {index}: \n"
 
-            if index not in self.data:
-                result += "\t Empty"
-                continue
+            if current is self.DELETED:
+                result += "\t Deleted \n"
 
-            current = self.data[index]
-
-            while current:
-                result += f"\t [{current.key}: {current.value}]"
-                current = current.next
-
-                if current:
-                    result += " -> \n"
-
-            result += "\n"
+            else:
+                result += f"\t {current.value} \n"
 
         return result
 
     def hash(self, key):
+
         hash_value = 0
+
         for char in key:
             hash_value += ord(char)     # Add ASCII values
+
         return hash_value % self.buckets
 
     def append(self, key, value):
+
         hashed_key = self.hash(key)
+        probes = 0                     
+        # If probes == self.buckets, then we have gone through the whole list
+        first_deleted = None
+        new_node = Node(key, value)
+        
+        # Probe til bucket/same key
+        while probes < self.buckets:
+            current = self.data.get(hashed_key)
 
-        for i in range(self.buckets):
-            current_index = (hashed_key + 1) % self.buckets
-            entry = self.data[current_index]
+            # Empty bucket, yay! Let's go here.
+            if current is None:
 
-            # Case 1: Bucket is Empty
-            if entry is None:
-                entry = (key, value)
+                if first_deleted is not None:
+                    hashed_key = first_deleted
+                
+                self.data[hashed_key] = new_node
                 self.size += 1
                 return
-
-            # Case 2: Existing key is there
-            if entry[0] == key:
-                entry = (key, value)
+            
+            # Tombstone found!
+            elif current is self.DELETED:
+                if first_deleted is None:
+                    first_deleted = hashed_key  # Could be useful later.
+            
+            # Key exists
+            elif current.key == key:
+                current.value = value
                 return
+            
+            else:
+                self.collisions += 1    # Since nothing happened, we have to move on, so this pass counts as a collision.
+            
+            hashed_key = (hashed_key + 1) % self.buckets
+            probes += 1
 
-            self.collisions += 1
-
-    def search(self, key):
-        hashed_key = self.hash(key)
-        current = self.data.get(hashed_key)
-
-        while current:
-            if current.key == key:
-                return current.value
-            current = current.next
-            self.memory_use += 1 # Searching is O(1), do so each loop
-
-        # If nothing was found, key does not exist!
-        return None
+        # Probed fully, tombstone was available though
+        if first_deleted is not None:
+            self.data[first_deleted] = new_node
+            self.size += 1
+            return
+        
+        raise OverflowError("Hash Table is full.")
 
     def delete(self, key):
         hashed_key = self.hash(key)
-        current = self.data.get(hashed_key)
-        previous = None
+        probes = 0
 
-        # Find node to delete
-        while current:
-            if current.key == key:
-                if previous:
-                    previous.next = current.next
-                else:
-                    self.data[hashed_key] = current.next
-                    self.size -= 1          # Node removed.
+        while probes < self.buckets:
+            current = self.data.get(hashed_key)
+            
+            # Nothing was found at the key. 
+            if current is None:
+                return False
+            
+            # Overlook tombstone entries
+            elif current is self.DELETED:
+                pass
+            
+            # Found key! Woohoo!
+            elif current.key == key:
+                self.data[hashed_key] = self.DELETED
+                self.size -= 1                 # -1 from array memory
                 return True
 
-            previous = current
-            current = current.next  # Current is set for next node in list
-
-        # Key went unfound:
+            hashed_key = (hashed_key + 1) % self.buckets
+            probes += 1
         return False
 
-
     # Calculates how many buckets were used; if all buckets are filled, the expected value is 0.
-    def unusued_buckets(self):
-        return self.buckets - len(self.data)
+    def unused_buckets(self):
+        return self.buckets - self.size
 
-    def waste_percentage(self):
-        return (self.unused_buckets() / self.capacity) * 100
 
 class Node:
     def __init__(self, key, value):
         self.key = key
         self.value = value
-        self.next = None
+        # Stores row as a whole as the value. movie_title is put in as the key parameter, but will be changed between versions of this project. 
 
 def main():
     hash_table = HashTable()
 
     # Get table values
     print('Starting hash population now...')
+
     start_time = time.perf_counter()        # Record time start
+
     with open('MOCK_DATA.csv', mode='r', encoding='utf-8') as file:
         reader = csv.DictReader(file)
-        for row in reader:
-            hash_table.append(row['movie_title'], row['quote'])
+        for movie in reader:
+            hash_table.append(movie['movie_title'], movie)
         
-    end_time = time.perf_counter()
+    end_time = time.perf_counter()          # End time
     duration = end_time - start_time
     print(f'Took {duration:.6f} seconds to complete')
 
     write_to_csv(hash_table)
     # print(hash_table)
+
+
 
 # Write Hash Table Values to a CSV to check if my output is valid
 # Result should be:
