@@ -143,10 +143,9 @@ def main():
             titles.add(_title)
 
             hash_table.append(_title, movie)
-    
-    print(f"Adjusted the values of {modified_titles} titles.")
         
     end_time = time.perf_counter()
+    print(f"Adjusted the values of {modified_titles} titles.")
 
     duration = end_time - start_time
 
