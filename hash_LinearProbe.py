@@ -72,7 +72,7 @@ class HashTable:
             else:
                 self.collisions += 1    # Since nothing happened, we have to move on, so this pass counts as a collision.
             
-            hashed_key = (hashed_key + 1) % self.buckets
+            hashed_key = (hashed_key + 1) % self.buckets    # Move to next index...
             probes += 1
 
         # Probed fully, tombstone was available though
@@ -122,7 +122,7 @@ class Node:
 def main():
     hash_table = HashTable()
     titles = set()      # Keep track of duplicate titles
-    modified_titles = 0  # Keep track of titles that got adjusted
+    #modified_titles = 0  # Keep track of titles that got adjusted
     row_number = 0      # Keep track of row to ensure that every title can be unique
 
     # Get table values
@@ -139,29 +139,28 @@ def main():
 
             # Check for duplicate
             if _title in titles:
-                _title = f"{movie['movie_title']}_{row_number}"
-                modified_titles += 1
+                _title = f"{movie['movie_title']}_{row_number}"     # Modify movie_title accordingly. The actual movie itself goes in unchanged, though!
+                # modified_titles += 1
             
             titles.add(_title)
 
-            hash_table.append(_title, movie)
+            hash_table.append(_title, movie)                    # Putting in the movie object w/o changing ['movie_title'] directly
     
-    print(f"Adjusted the values of {modified_titles} titles.")
+    #  print(f"Adjusted the values of {modified_titles} titles.")       Output: 3691!
         
     end_time = time.perf_counter()          # End time
     duration = end_time - start_time
     print(f'Took {duration:.6f} seconds to complete')
 
     write_to_csv(hash_table)
+
     print(hash_table)
 
 
 
 # Write Hash Table Values to a CSV to check if my output is valid
-# Result should be:
-# bucket/key : value
 def write_to_csv(data):
-    file = 'OUTPUT_DATA.csv'
+    file = 'OUTPUT_DATA_LinearProbe.csv'
     with open(file, "w", newline="", encoding="utf-8") as f:
         f.write(str(data))
 

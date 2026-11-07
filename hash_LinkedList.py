@@ -154,11 +154,11 @@ def main():
 
     write_to_csv(hash_table)
 
+    print(hash_table)
+
 # Write Hash Table Values to a CSV to check if my output is valid
-# Result should be:
-# bucket/key : value
 def write_to_csv(data):
-    file = 'OUTPUT_DATA.csv'
+    file = 'OUTPUT_DATA_LinkedList.csv'
     with open(file, "w", newline="", encoding="utf-8") as f:
         f.write(str(data))
 
